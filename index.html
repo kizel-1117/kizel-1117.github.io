@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <title>오행酒 룰렛</title>
+  <style>
+    :root{
+      --wheel-size: min(90vmin, 900px);
+      --accent:#fff; --bg:#000;
+      --rotor-scale: 0.9;
+      --rotor-dx: 0px;
+      --rotor-dy: 0px;
+      --base-scale: 1;
+      --base-dx: 0px;
+      --base-dy: 0px;
+      --angle: 0deg;
+    }
+    html,body{
+      height:100%;margin:0;background:var(--bg);color:var(--accent);
+      font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+      -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none
+    }
+    .wrap{height:100%;display:grid;place-items:center;padding:2rem 1rem;box-sizing:border-box}
+    .stage{position:relative;width:var(--wheel-size);height:var(--wheel-size);cursor:grab}
+    .stage.dragging{cursor:grabbing}
+    #wheelBase,#wheel{
+      position:absolute;left:50%;top:50%;
+      width:100%;height:100%;
+      transform-origin:50% 50%;
+      object-fit:contain
+    }
+    #wheelBase{
+      z-index:1;pointer-events:none;
+      transform:translate(-50%,-50%) translate(var(--base-dx),var(--base-dy)) scale(var(--base-scale))
+    }
+    #wheel{
+      z-index:2;
+      transform:translate(-50%,-50%) translate(var(--rotor-dx),var(--rotor-dy)) scale(var(--rotor-scale)) rotate(var(--angle));
+      transition:transform 0ms linear;
+      will-change:transform;
+      filter:drop-shadow(0 6px 18px rgba(0,0,0,.6))
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="stage" id="stage" role="application" aria-label="룰렛 휠">
+      <img id="wheelBase" alt="roulette base" src="roulette_1.png" draggable="false"/>
+      <img id="wheel" alt="roulette rotor" src="roulette_2.png" draggable="false"/>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      var root = document.documentElement;
+      var stage = document.getElementById('stage');
+      var wheel = document.getElementById('wheel');
+
+      var angle = 0;
+      var dragging = false;
+      var grabOffset = 0;
+
+      function setA(a){ angle = a; root.style.setProperty('--angle', angle + 'deg'); }
+      function stageCenter(){
+        var r = stage.getBoundingClientRect();
+        return { cx: r.left + r.width/2, cy: r.top + r.height/2 };
+      }
+      function angleFromCenter(x,y){
+        var c = stageCenter();
+        var dx = x - c.cx;
+        var dy = y - c.cy;
+        return Math.atan2(dy, dx) * 180/Math.PI + 90;
+      }
+      function unify(e){
+        if(e.touches && e.touches.length) return {x:e.touches[0].clientX, y:e.touches[0].clientY};
+        return {x:e.clientX, y:e.clientY};
+      }
+
+      function onDown(x,y){
+        dragging = true;
+        stage.classList.add('dragging');
+        wheel.style.transition = 'transform 0ms linear';
+        var a = angleFromCenter(x,y);
+        grabOffset = a - angle;
+      }
+      function onMove(x,y){
+        if(!dragging) return;
+        var a = angleFromCenter(x,y);
+        setA(a - grabOffset);
+      }
+      function onUp(){
+        if(!dragging) return;
+        dragging = false;
+        stage.classList.remove('dragging');
+        wheel.style.transition = 'transform 0ms linear';
+        setA(angle);
+      }
+
+      stage.addEventListener('pointerdown', function(e){ e.preventDefault(); var p=unify(e); onDown(p.x,p.y); });
+      window.addEventListener('pointermove', function(e){ var p=unify(e); onMove(p.x,p.y); });
+      window.addEventListener('pointerup',   function(){ onUp(); });
+      window.addEventListener('pointercancel', function(){ onUp(); });
+
+      setA(0);
+    })();
+  </script>
+</body>
+</html>
