@@ -4,7 +4,35 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
   <title>오행酒 룰렛</title>
+
+  <!-- Webfont + Local TTF (local 우선, 없으면 CDN 사용) -->
   <style>
+    /* Local TTF (같은 폴더에 있으면 자동 사용) */
+    @font-face {
+      font-family: 'JSunflower';
+      src:
+        url('Sunflower-Medium.ttf') format('truetype'),
+        url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2110@1.0/JHaebaragi-Medium-KO.woff2') format('woff2');
+      font-weight: 500;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'JSunflower';
+      src:
+        url('Sunflower-Light.ttf') format('truetype'),
+        url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2110@1.0/JHaebaragi-Light-KO.woff2') format('woff2');
+      font-weight: 300;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'JSunflower';
+      src:
+        url('Sunflower-Bold.ttf') format('truetype'),
+        url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2110@1.0/JHaebaragi-Bold-KO.woff2') format('woff2');
+      font-weight: 700;
+      font-display: swap;
+    }
+
     :root{
       --wheel-size: min(90vmin, 900px);
       --accent:#fff; --bg:#000;
@@ -15,16 +43,68 @@
       --base-dx: 0px;
       --base-dy: 0px;
       --angle: 0deg;
+      --header-h: clamp(56px, 8vh, 92px);
+      --header-offset: clamp(20px, 6vh, 80px);
+
+      /* 헤더 높이 */
+      --header-h: clamp(56px, 8vh, 92px);
     }
-    /* test?= */
+
     html,body{
-      height:100%;margin:0;background:var(--bg);color:var(--accent);
+      height:100%;margin:0;color:var(--accent);
       font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
-      -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none
+      -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none;
+      background: var(--bg);
     }
-    .wrap{height:100%;display:grid;place-items:center;padding:2rem 1rem;box-sizing:border-box}
+
+    /* 풀스크린 배경 이미지 */
+    body::before{
+      content:"";
+      position:fixed; inset:0;
+      background: url('background-03.png') center/cover no-repeat;
+      z-index:0;
+    }
+    /* 필요하면 살짝 어둡게(가독성 보정). 투명도 조절 가능 */
+    body::after{
+      content:"";
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.2); /* 0~0.3 사이로 조절 */
+      z-index:1;
+    }
+
+    /* 상단 헤더 */
+    .header{
+    position:fixed; left:0; top:var(--header-offset); /* ← 기존 top:0 에서 변경 */
+    width:100%; height:var(--header-h);
+    display:grid; place-items:center;
+    padding: 0 1rem; box-sizing:border-box;
+    z-index:20; pointer-events:none;
+  }
+    .header .title{
+      font-family:'JSunflower', sans-serif;
+      font-weight:500;
+      color:#000;                 /* 요청: 블랙 */
+      background: rgba(255,255,255,.85);  /* 어떤 배경 위에서도 가독성 확보 */
+      padding:.7rem 1.25rem;
+      border-radius: 999px;
+      letter-spacing:.02em;
+      font-size: clamp(16px, 2.4vw, 22px);
+      box-shadow: 0 6px 20px rgba(0,0,0,.18);
+      pointer-events:auto; /* 텍스트 선택 가능하게 하려면 auto 유지 */
+      -webkit-user-select:text; user-select:text;
+    }
+
+    .wrap{
+      height:100%;
+      display:grid; place-items:center;
+      padding: calc(var(--header-h) + var(--header-offset)) 1rem var(--header-offset);
+      box-sizing:border-box;
+      position: relative; z-index: 2;
+    }
+
     .stage{position:relative;width:var(--wheel-size);height:var(--wheel-size);cursor:grab}
     .stage.dragging{cursor:grabbing}
+
     #wheelBase,#wheel{
       position:absolute;left:50%;top:50%;
       width:100%;height:100%;
@@ -45,6 +125,9 @@
   </style>
 </head>
 <body>
+  <div class="header" aria-hidden="true">
+    <div class="title">룰렛을 돌려 다양한 칵테일 종류를 구경해보세요</div>
+  </div>
   <div class="wrap">
     <div class="stage" id="stage" role="application" aria-label="룰렛 휠">
       <img id="wheelBase" alt="roulette base" src="roulette_1.png" draggable="false"/>
